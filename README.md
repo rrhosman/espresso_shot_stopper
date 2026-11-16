@@ -14,6 +14,96 @@ CrowPanel 1.46" rotary display + Bookoo Themis Ultra + Bambino Plus.
 Tap **STOP** at any time to end the shot early. The shot is also stopped automatically
 if the scale disconnects or after 90 s.
 
+## Requirements & Prerequisites
+
+### Hardware
+- **CrowPanel 1.46" Rotary Display** (ESP32-S3 round rotary knob display)
+- **USB-C data cable** (ensure it supports data, not power-only)
+- **Bookoo Themis Ultra** espresso scale
+- **Bambino / Bambino Plus** (wired via optocoupler / relay to `BREW_PIN`)
+
+### Software Installation
+
+The recommended development and flashing environment is **VS Code + PlatformIO**:
+
+1. **Install VS Code**: Download and install [Visual Studio Code](https://code.visualstudio.com/).
+2. **Install PlatformIO IDE Extension**:
+   - Open VS Code.
+   - Go to the Extensions panel (`Ctrl+Shift+X` on Windows/Linux or `Cmd+Shift+X` on macOS).
+   - Search for **PlatformIO IDE** and click **Install**.
+   - Wait for PlatformIO to finish installing its core components and restart VS Code if prompted.
+3. **Install USB / Serial Drivers** (if your PC does not recognize the ESP32-S3):
+   - The CrowPanel uses the native USB-CDC or a CH340 / CP210x chip.
+   - On Windows, check Device Manager under **Ports (COM & LPT)** when connected.
+
+---
+
+## How to Build & Flash (PlatformIO - Recommended)
+
+1. **Open the project**:
+   - In VS Code, choose **File > Open Folder...** and select `espresso_shot_stopper`.
+2. **Connect the board**:
+   - Plug the CrowPanel 1.46" rotary display into your computer using a USB-C data cable.
+   - Make sure your board is detected on a COM port.
+   - *Note on ESP32-S3 Bootloader:* If the board is brand new or not responding to flash commands, hold the **BOOT** button while plugging in or pressing **RST**, then release **BOOT** to enter flashing mode.
+3. **Configure options (Optional)**:
+   - Review and tweak settings in `src/config.h` (e.g. `BREW_PIN`, `STOP_OFFSET_G`, `SCALE_NAME_FILTER`).
+4. **Build and Upload**:
+   - **Using VS Code GUI**:
+     - Click the **PlatformIO** alien icon on the left sidebar.
+     - Under **Project Tasks > crowpanel146 > General**, click:
+       - **Build** (check mark icon on bottom toolbar) to compile.
+       - **Upload** (right arrow icon on bottom toolbar) to flash.
+   - **Using PlatformIO CLI / Terminal**:
+     ```powershell
+     # Build the project
+     pio run
+
+     # Upload firmware to board
+     pio run -t upload
+
+     # (Optional) Specify COM port if not auto-detected:
+     pio run -t upload --upload-port COMx
+     ```
+5. **Open Serial Monitor**:
+   - In VS Code, click the plug icon on the bottom toolbar or run:
+     ```powershell
+     pio device monitor
+     ```
+   - Baud rate is preset to `115200`. You should see boot logs, Bluetooth scanning, and weight output.
+
+---
+
+## Alternative: Arduino IDE Setup
+
+If you prefer using Arduino IDE (version 2.x recommended):
+
+1. **Install ESP32 Board Support**:
+   - In Arduino IDE, open **File > Preferences**.
+   - Add the Espressif package URL to *Additional Boards Manager URLs*:
+     `https://espressif.github.io/arduino-esp32/package_esp32_index.json`
+   - Go to **Tools > Board > Boards Manager**, search for `esp32`, and install version **2.0.14** (recommended by Elecrow).
+2. **Install Required Libraries**:
+   Go to **Sketch > Include Library > Manage Libraries...** and install:
+   - `LovyanGFX` @ **1.2.7** *(If `Panel_ST77961` fails to compile, use Elecrow's customized LovyanGFX from their CrowPanel demo repository)*
+   - `lvgl` @ **8.3.11**
+   - `NimBLE-Arduino` @ **1.4.3**
+3. **Prepare the Sketch & LVGL Configuration**:
+   - Put `bookoo.h`, `config.h`, `main.cpp`, and `shot.h` into an `espresso_shot_stopper` sketch folder.
+   - Rename `main.cpp` to `espresso_shot_stopper.ino`.
+   - Copy `include/lv_conf.h` into your Arduino libraries folder directly next to the `lvgl` directory (or inside your sketch root if configured).
+4. **Configure Board Settings under `Tools`**:
+   - **Board**: `ESP32S3 Dev Module`
+   - **Flash Size**: `16MB (128Mb)`
+   - **Partition Scheme**: `16M Flash (3MB APP/9.9MB FAT)` or `default 16MB`
+   - **PSRAM**: `OPI PSRAM`
+   - **Memory Type**: `qio_opi`
+   - **USB Mode**: `Hardware CDC and JTAG`
+   - **USB CDC On Boot**: `Enabled`
+5. **Upload**: Select your board's COM port and click **Upload**.
+
+---
+
 ## Before first use
 
 - **Put the scale in Flow mode.** The Ultra ignores timer commands in plain Weight mode.
