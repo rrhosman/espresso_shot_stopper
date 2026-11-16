@@ -1,0 +1,19 @@
+# PlatformIO
+.pio
+.pioenvs
+.piolibdeps
+
+# VS Code / IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build outputs & temporary files
+*.pyc
+*.o
+*.a
+*.obj
